@@ -1,6 +1,8 @@
-﻿using BuberDinner.Api.Filters;
-using BuberDinner.Application.Services.Authentication;
+﻿using BuberDinner.Application.Authentication.Commands.Register;
+using BuberDinner.Application.Authentication.Common;
+using BuberDinner.Application.Authentication.Queries.Login;
 using BuberDinner.Contracts.Authentication;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BuberDinner.Api.Controllers;
@@ -9,20 +11,16 @@ namespace BuberDinner.Api.Controllers;
 [ApiController]
 //[ErrorHandlingFilter]
 public class AuthenticationController(
-    IAuthenticationService authenticationService
+    ISender mediator
     ) : ControllerBase
 {
-    private readonly IAuthenticationService authenticationService = authenticationService;
+    private readonly ISender mediator = mediator;
 
     [HttpPost("register")]
-    public IActionResult Register(RegisterRequest request)
+    public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var authResult = authenticationService.Register(
-            request.FirstName,
-            request.LastName,
-            request.Email,
-            request.Password
-        );
+        var command = new RegisterCommand(request.FirstName, request.LastName, request.Email, request.Password);
+        AuthenticationResult authResult = await mediator.Send(command);
         var response = new AuthenticationResponse(
             authResult.User.Id,
             authResult.User.FirstName,
@@ -34,12 +32,10 @@ public class AuthenticationController(
     }
 
     [HttpPost("login")]
-    public IActionResult Login(LoginRequest request)
+    public async Task<IActionResult> Login(LoginRequest request)
     {
-        var authResult = authenticationService.Login(
-            request.Email,
-            request.Password
-        );
+        var query = new LoginQuery(Email: request.Email, Password: request.Password);
+        var authResult = await mediator.Send(query);
         var response = new AuthenticationResponse(
             authResult.User.Id,
             authResult.User.FirstName,
