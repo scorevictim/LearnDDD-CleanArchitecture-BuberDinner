@@ -2,6 +2,7 @@
 using BuberDinner.Application.Authentication.Common;
 using BuberDinner.Application.Authentication.Queries.Login;
 using BuberDinner.Contracts.Authentication;
+using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,38 +12,28 @@ namespace BuberDinner.Api.Controllers;
 [ApiController]
 //[ErrorHandlingFilter]
 public class AuthenticationController(
-    ISender mediator
+    ISender mediator,
+    IMapper mapper
     ) : ControllerBase
 {
     private readonly ISender mediator = mediator;
+    private readonly IMapper mapper = mapper;
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var command = new RegisterCommand(request.FirstName, request.LastName, request.Email, request.Password);
+        var command = mapper.Map<RegisterCommand>(request);
         AuthenticationResult authResult = await mediator.Send(command);
-        var response = new AuthenticationResponse(
-            authResult.User.Id,
-            authResult.User.FirstName,
-            authResult.User.LastName,
-            authResult.User.Email,
-            authResult.Token
-        );
+        var response = mapper.Map<AuthenticationResponse>(authResult);
         return Ok(response);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var query = new LoginQuery(Email: request.Email, Password: request.Password);
+        var query = mapper.Map<LoginQuery>(request);
         var authResult = await mediator.Send(query);
-        var response = new AuthenticationResponse(
-            authResult.User.Id,
-            authResult.User.FirstName,
-            authResult.User.LastName,
-            authResult.User.Email,
-            authResult.Token
-        );
+        var response = mapper.Map<AuthenticationResponse>(authResult);
         return Ok(response);
     }
 }

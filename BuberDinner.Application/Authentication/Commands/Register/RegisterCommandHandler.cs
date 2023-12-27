@@ -21,7 +21,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Authentic
 
     public async Task<AuthenticationResult> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
-
+        await Task.CompletedTask;
         // Check if user already exists
         if (userRepository.GetUserByEmail(command.Email) is not null)
         {
@@ -31,7 +31,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Authentic
         // Create user (generate unique Id) & persist to DB
         var user = new User
         {
-            FirstName = command.FristName,
+            FirstName = command.FirstName,
             LastName = command.LastName,
             Email = command.Email,
             Password = command.Password
