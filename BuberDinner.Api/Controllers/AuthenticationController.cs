@@ -1,5 +1,4 @@
 ﻿using BuberDinner.Application.Authentication.Commands.Register;
-using BuberDinner.Application.Authentication.Common;
 using BuberDinner.Application.Authentication.Queries.Login;
 using BuberDinner.Contracts.Authentication;
 using MapsterMapper;
@@ -14,7 +13,7 @@ namespace BuberDinner.Api.Controllers;
 public class AuthenticationController(
     ISender mediator,
     IMapper mapper
-    ) : ControllerBase
+    ) : ApiController
 {
     private readonly ISender mediator = mediator;
     private readonly IMapper mapper = mapper;
@@ -23,9 +22,11 @@ public class AuthenticationController(
     public async Task<IActionResult> Register(RegisterRequest request)
     {
         var command = mapper.Map<RegisterCommand>(request);
-        AuthenticationResult authResult = await mediator.Send(command);
-        var response = mapper.Map<AuthenticationResponse>(authResult);
-        return Ok(response);
+        var authResult = await mediator.Send(command);
+
+        return authResult.Match(
+            authResult => Ok(mapper.Map<AuthenticationResponse>(authResult)),
+            Problem);
     }
 
     [HttpPost("login")]
@@ -33,7 +34,8 @@ public class AuthenticationController(
     {
         var query = mapper.Map<LoginQuery>(request);
         var authResult = await mediator.Send(query);
-        var response = mapper.Map<AuthenticationResponse>(authResult);
-        return Ok(response);
+        return authResult.Match(
+            authResult => Ok(mapper.Map<AuthenticationResponse>(authResult)),
+            Problem);
     }
 }
