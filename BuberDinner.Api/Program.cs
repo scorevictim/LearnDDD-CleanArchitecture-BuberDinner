@@ -24,6 +24,8 @@ var app = builder.Build();
 
     //    return Results.Problem(title: exception?.Message);
     //});
+    app.UseAuthentication();
+    app.UseAuthorization();
     app.MapControllers();
 }
 
